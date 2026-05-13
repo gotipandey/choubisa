@@ -1,77 +1,420 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Choubisa Samaj Parichay Samelan Registration</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; }
-    form { background: #fff; padding: 20px; border-radius: 8px; max-width: 700px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    h2, h3 { text-align: center; color: #333; }
-    input, select, button { display: block; margin: 10px 0; padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 4px; }
-    button { background: #007bff; color: white; border: none; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    .member { border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 4px; background: #fafafa; }
-    .delete-btn { background: red; color: white; margin-top: 5px; }
+    :root {
+      --primary: #0e6f5c;
+      --primary-dark: #095747;
+      --accent: #f3a712;
+      --bg: #f2f6f5;
+      --text: #14213d;
+      --card: #ffffff;
+      --danger: #c1121f;
+      --border: #d7e0dd;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at top right, #d9efe9 0%, var(--bg) 55%);
+      color: var(--text);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .sub {
+      text-align: center;
+      margin: 0 0 24px;
+      color: #38586d;
+    }
+
+    form {
+      background: var(--card);
+      padding: 22px;
+      border-radius: 14px;
+      box-shadow: 0 10px 35px rgba(14, 111, 92, 0.12);
+      border: 1px solid var(--border);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 8px;
+      border: 1px solid #c5d0cd;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 2px solid #b6e3d7;
+      border-color: var(--primary);
+    }
+
+    h3 {
+      margin: 22px 0 10px;
+      font-size: 19px;
+      color: #173f35;
+    }
+
+    .member {
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: 10px;
+      margin: 10px 0;
+      padding: 12px;
+      background: #fbfdfc;
+    }
+
+    .member-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #1d1d1d;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+      width: auto;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .notice {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #fff6da;
+      border: 1px solid #f2d483;
+      font-size: 14px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .ok {
+      color: #0d6c57;
+      font-weight: 700;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 680px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      form {
+        padding: 14px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h2>Choubisa Samaj Parichay Samelan Registration</h2>
-  <form id="registrationForm">
-    <input type="text" id="family_name" placeholder="Family Name" required>
-    <input type="text" id="address" placeholder="Address" required>
-    <input type="text" id="phone" placeholder="Phone Number" required>
+  <div class="container">
+    <h2>Choubisa Samaj Parichay Samelan Registration</h2>
+    <p class="sub">Fill family details, pay registration fee, and send details to admin WhatsApp.</p>
 
-    <h3>Family Members</h3>
-    <div id="members"></div>
-    <button type="button" onclick="addMember()">Add Member</button>
+    <form id="registrationForm" novalidate>
+      <div class="grid">
+        <div>
+          <label for="familyOwner">Family Owner (Mandatory)</label>
+          <input type="text" id="familyOwner" placeholder="Enter family owner name" required>
+        </div>
+        <div>
+          <label for="familyName">Family Name</label>
+          <input type="text" id="familyName" placeholder="Enter family surname" required>
+        </div>
+        <div class="full">
+          <label for="address">Address</label>
+          <textarea id="address" rows="2" placeholder="Enter address" required></textarea>
+        </div>
+        <div>
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" placeholder="10-digit mobile number" pattern="[0-9]{10}" required>
+        </div>
+        <div>
+          <label for="amount">Registration Amount (INR)</label>
+          <input type="number" id="amount" min="1" value="1" required>
+        </div>
+      </div>
 
-    <h3>Payment</h3>
-    <button type="button" onclick="payNow()">Pay & Register</button>
-  </form>
+      <h3>Family Members</h3>
+      <div id="members"></div>
+      <button type="button" class="btn-accent" id="addMemberBtn">Add Family Member</button>
+
+      <div class="btn-row">
+        <button type="submit" class="btn-primary">Register & Go to Google Pay</button>
+      </div>
+
+      <div class="notice">
+        On Register, Google Pay is opened for payment. After successful payment, enter UTR/Transaction ID and click Send to Admin WhatsApp.
+      </div>
+
+      <div id="paymentConfirmSection" class="hidden">
+        <h3>Payment Confirmation</h3>
+        <div class="grid">
+          <div>
+            <label for="transactionId">UTR / Transaction ID</label>
+            <input type="text" id="transactionId" placeholder="Enter payment transaction ID" required>
+          </div>
+          <div style="align-self: end;">
+            <button type="button" id="sendWhatsAppBtn" class="btn-primary">Send Details to Admin WhatsApp</button>
+          </div>
+        </div>
+        <div id="status" class="ok"></div>
+      </div>
+    </form>
+  </div>
 
   <script>
-    function addMember() {
-      const container = document.getElementById("members");
-      const memberDiv = document.createElement("div");
-      memberDiv.className = "member";
-      memberDiv.innerHTML = `
-        <input type="text" name="member_name[]" placeholder="Member Name" required>
-        <input type="number" name="member_age[]" placeholder="Age" required>
-        <input type="text" name="member_relation[]" placeholder="Relation" required>
-        <select name="member_status[]">
-          <option value="Unmarried">Unmarried</option>
-          <option value="Married">Married</option>
-        </select>
-        <button type="button" class="delete-btn" onclick="this.parentNode.remove()">Delete</button>
+    const ADMIN_WHATSAPP = "919407420156";
+    const UPI_ID = "gotipandey@okhdfcbank";
+    const UPI_NAME = "Choubisa Samaj";
+
+    const form = document.getElementById("registrationForm");
+    const membersContainer = document.getElementById("members");
+    const addMemberBtn = document.getElementById("addMemberBtn");
+    const paymentConfirmSection = document.getElementById("paymentConfirmSection");
+    const sendWhatsAppBtn = document.getElementById("sendWhatsAppBtn");
+    const statusEl = document.getElementById("status");
+
+    let registrationSnapshot = null;
+
+    function createMemberCard(memberIndex) {
+      const member = document.createElement("div");
+      member.className = "member";
+      member.innerHTML = `
+        <div class="member-head">
+          <span>Member ${memberIndex}</span>
+          <button type="button" class="btn-danger">Delete Member</button>
+        </div>
+        <div class="grid">
+          <div>
+            <label>Member Name</label>
+            <input type="text" name="member_name" required>
+          </div>
+          <div>
+            <label>Age</label>
+            <input type="number" name="member_age" min="0" required>
+          </div>
+          <div>
+            <label>Relation</label>
+            <input type="text" name="member_relation" required>
+          </div>
+          <div>
+            <label>Marital Status</label>
+            <select name="member_status" required>
+              <option value="">Select</option>
+              <option value="Unmarried">Unmarried</option>
+              <option value="Married">Married</option>
+            </select>
+          </div>
+        </div>
       `;
-      container.appendChild(memberDiv);
+
+      const deleteBtn = member.querySelector(".btn-danger");
+      deleteBtn.addEventListener("click", function () {
+        member.remove();
+        renumberMembers();
+      });
+
+      return member;
     }
 
-    function payNow() {
-      const phone = document.getElementById("phone").value;
-      const family = document.getElementById("family_name").value;
-
-      // UPI deep link for Google Pay (replace with your UPI ID and amount)
-      const upiId = "gotipandey@okhdfcbank"; // your UPI ID
-      const amount = "1"; // registration fee
-      const name = "Choubisa Samaj";
-      const transactionNote = "Parichay Samelan Registration";
-
-      const upiLink = `upi://pay?pa=${upiId}&pn=${name}&mc=0000&tid=${Date.now()}&tr=${Date.now()}&tn=${transactionNote}&am=${amount}&cu=INR`;
-
-      // Redirect to Google Pay (or any UPI app)
-      window.location.href = upiLink;
-
-      // After redirection, trigger WhatsApp messages
-      setTimeout(() => {
-        const msg = `Registration Successful! Family: ${family}, Amount: ₹${amount}`;
-        // Send to Admin
-        window.open(`https://wa.me/919407420156?text=${msg}`, "_blank");
-        // Send to User
-        window.open(`https://wa.me/91${phone}?text=${msg}`, "_blank");
-      }, 3000); // wait 3 seconds before sending WhatsApp
+    function renumberMembers() {
+      const cards = membersContainer.querySelectorAll(".member");
+      cards.forEach(function (card, idx) {
+        const title = card.querySelector(".member-head span");
+        title.textContent = `Member ${idx + 1}`;
+      });
     }
+
+    function addMember() {
+      const memberNumber = membersContainer.querySelectorAll(".member").length + 1;
+      const card = createMemberCard(memberNumber);
+      membersContainer.appendChild(card);
+    }
+
+    function getMembersData() {
+      const cards = membersContainer.querySelectorAll(".member");
+      const members = [];
+
+      cards.forEach(function (card) {
+        members.push({
+          name: card.querySelector('input[name="member_name"]').value.trim(),
+          age: card.querySelector('input[name="member_age"]').value.trim(),
+          relation: card.querySelector('input[name="member_relation"]').value.trim(),
+          status: card.querySelector('select[name="member_status"]').value
+        });
+      });
+
+      return members;
+    }
+
+    function openGooglePay(regData) {
+      const amount = encodeURIComponent(regData.amount);
+      const tid = Date.now().toString();
+      const note = encodeURIComponent("Parichay Samelan Registration");
+      const payee = encodeURIComponent(UPI_NAME);
+      const upi = `upi://pay?pa=${UPI_ID}&pn=${payee}&am=${amount}&cu=INR&tn=${note}&tid=${tid}&tr=${tid}`;
+
+      window.location.href = upi;
+    }
+
+    function buildWhatsAppMessage(regData, txId) {
+      const lines = [];
+      lines.push("New Family Registration");
+      lines.push("-----------------------------");
+      lines.push(`Family Owner: ${regData.familyOwner}`);
+      lines.push(`Family Name: ${regData.familyName}`);
+      lines.push(`Address: ${regData.address}`);
+      lines.push(`Phone: ${regData.phone}`);
+      lines.push(`Amount Paid: INR ${regData.amount}`);
+      lines.push(`Transaction ID: ${txId}`);
+      lines.push("Family Members:");
+
+      regData.members.forEach(function (m, idx) {
+        lines.push(`${idx + 1}. ${m.name} | Age: ${m.age} | Relation: ${m.relation} | Status: ${m.status}`);
+      });
+
+      return lines.join("\n");
+    }
+
+    function validateMemberCount() {
+      const count = membersContainer.querySelectorAll(".member").length;
+      if (count < 1) {
+        alert("Please add at least one family member.");
+        return false;
+      }
+      return true;
+    }
+
+    addMemberBtn.addEventListener("click", addMember);
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      statusEl.textContent = "";
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      if (!validateMemberCount()) {
+        return;
+      }
+
+      const members = getMembersData();
+      const hasInvalidMember = members.some(function (m) {
+        return !m.name || !m.age || !m.relation || !m.status;
+      });
+
+      if (hasInvalidMember) {
+        alert("Please fill all family member details.");
+        return;
+      }
+
+      registrationSnapshot = {
+        familyOwner: document.getElementById("familyOwner").value.trim(),
+        familyName: document.getElementById("familyName").value.trim(),
+        address: document.getElementById("address").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        amount: document.getElementById("amount").value.trim(),
+        members: members
+      };
+
+      paymentConfirmSection.classList.remove("hidden");
+      openGooglePay(registrationSnapshot);
+    });
+
+    sendWhatsAppBtn.addEventListener("click", function () {
+      const txId = document.getElementById("transactionId").value.trim();
+
+      if (!registrationSnapshot) {
+        alert("Please complete registration first.");
+        return;
+      }
+
+      if (!txId) {
+        alert("Please enter UTR / Transaction ID after payment.");
+        return;
+      }
+
+      const message = buildWhatsAppMessage(registrationSnapshot, txId);
+      const waUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(message)}`;
+      window.open(waUrl, "_blank");
+      statusEl.textContent = "Details ready and sent to Admin WhatsApp window.";
+    });
+
+    // Start with one member block by default.
+    addMember();
   </script>
 </body>
 </html>
-
- 
