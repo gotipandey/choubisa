@@ -122,6 +122,17 @@
     <div class="loader-sub" id="loaderSub">Please wait while we process and send your details to admin.</div>
   </div>
 
+  <div id="paymentConfirmModal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9998;">
+    <div style="background:#fff; border-radius:16px; padding:24px; max-width:400px; box-shadow:0 10px 40px rgba(0,0,0,0.2); text-align:center;">
+      <h3 style="margin:0 0 12px; color:#0e6f5c; font-size:20px;">Confirm Payment</h3>
+      <p style="margin:0 0 20px; color:#555; font-size:15px; line-height:1.5;">Did you successfully complete the payment in your UPI app?</p>
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button type="button" id="paymentConfirmYes" style="background:#0e6f5c; color:#fff; border:none; padding:10px 24px; border-radius:8px; font-weight:600; cursor:pointer;">Yes, Payment Done</button>
+        <button type="button" id="paymentConfirmNo" style="background:#ccc; color:#333; border:none; padding:10px 24px; border-radius:8px; font-weight:600; cursor:pointer;">No, Try Again</button>
+      </div>
+    </div>
+  </div>
+
   <div class="container">
     <h2>Choubisa Samaj Parichay Samelan Registration</h2>
     <p class="sub">Fill family details &amp; pay via QR code. Details are auto-sent to admin after payment.</p>
@@ -194,6 +205,9 @@
     const loaderOverlay = document.getElementById("loaderOverlay");
     const loaderText = document.getElementById("loaderText");
     const loaderSub = document.getElementById("loaderSub");
+    const paymentConfirmModal = document.getElementById("paymentConfirmModal");
+    const paymentConfirmYes = document.getElementById("paymentConfirmYes");
+    const paymentConfirmNo = document.getElementById("paymentConfirmNo");
     const ua = navigator.userAgent || "";
     const isAndroid = /Android/i.test(ua);
     const isIOS = /iPhone|iPad|iPod/i.test(ua);
@@ -210,6 +224,16 @@
 
     function hideLoader() {
       loaderOverlay.classList.add("hidden");
+    }
+
+    function showPaymentConfirmModal() {
+      paymentSection.classList.add("hidden");
+      paymentConfirmModal.classList.remove("hidden");
+    }
+
+    function hidePaymentConfirmModal() {
+      paymentConfirmModal.classList.add("hidden");
+      paymentSection.classList.remove("hidden");
     }
 
     function addMember() {
@@ -329,7 +353,7 @@
         setTimeout(() => { window.location.href = upiLink; }, 250);
         setTimeout(() => hideLoader(), 2200);
       } else {
-        statusEl.textContent = "Use payment buttons or scan QR to pay.";
+        statusEl.textContent = "Pay using GPay/button/QR, then click 'I Have Completed Payment'.";
       }
     }
 
@@ -343,6 +367,8 @@
         statusEl.textContent = `${appName} app cannot open directly on desktop web. Please scan QR to pay.`;
         return;
       }
+      leftForPayment = true;
+      saveState();
       window.location.href = link;
       setTimeout(() => {
         statusEl.textContent = `If ${appName} did not open, try another button or scan QR.`;
@@ -409,7 +435,8 @@
       } else {
         loadState();
         if (pending && !sent && leftForPayment) {
-          sendToAdmin();
+          hideLoader();
+          showPaymentConfirmModal();
         } else {
           hideLoader();
         }
@@ -418,7 +445,23 @@
 
     window.addEventListener("focus", () => {
       loadState();
-      if (pending && !sent && leftForPayment) sendToAdmin();
+      if (pending && !sent && leftForPayment) {
+        hideLoader();
+        showPaymentConfirmModal();
+      }
+    });
+
+    paymentConfirmYes.addEventListener("click", () => {
+      hidePaymentConfirmModal();
+      sendToAdmin();
+    });
+
+    paymentConfirmNo.addEventListener("click", () => {
+      hidePaymentConfirmModal();
+      leftForPayment = false;
+      saveState();
+      statusEl.textContent = "Returning to payment options. Scan QR or choose app again.";
+      paymentRefEl = paymentRefEl || {};
     });
 
     gpayBtn.addEventListener("click", (e) => handlePaymentButtonClick(e, gpayBtn.href, "Google Pay"));
@@ -431,7 +474,9 @@
     loadState();
     if (pending && !sent && snap) {
       setupPaymentLinks(snap);
-      if (leftForPayment) sendToAdmin();
+      if (leftForPayment) {
+        statusEl.textContent = "If payment is complete, click 'I Have Completed Payment' to continue.";
+      }
     }
   </script>
 </body>
