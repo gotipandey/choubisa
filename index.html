@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Choubisa Samaj Parichay Samelan Registration</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; }
+    form { background: #fff; padding: 20px; border-radius: 8px; max-width: 700px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2, h3 { text-align: center; color: #333; }
+    input, select, button { display: block; margin: 10px 0; padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 4px; }
+    button { background: #007bff; color: white; border: none; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .member { border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 4px; background: #fafafa; }
+    .delete-btn { background: red; color: white; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <h2>Choubisa Samaj Parichay Samelan Registration</h2>
+  <form id="registrationForm">
+    <input type="text" id="family_name" placeholder="Family Name" required>
+    <input type="text" id="address" placeholder="Address" required>
+    <input type="text" id="phone" placeholder="Phone Number" required>
+
+    <h3>Family Members</h3>
+    <div id="members"></div>
+    <button type="button" onclick="addMember()">Add Member</button>
+
+    <h3>Payment</h3>
+    <button type="button" onclick="payNow()">Pay & Register</button>
+  </form>
+
+  <script>
+    function addMember() {
+      const container = document.getElementById("members");
+      const memberDiv = document.createElement("div");
+      memberDiv.className = "member";
+      memberDiv.innerHTML = `
+        <input type="text" name="member_name[]" placeholder="Member Name" required>
+        <input type="number" name="member_age[]" placeholder="Age" required>
+        <input type="text" name="member_relation[]" placeholder="Relation" required>
+        <select name="member_status[]">
+          <option value="Unmarried">Unmarried</option>
+          <option value="Married">Married</option>
+        </select>
+        <button type="button" class="delete-btn" onclick="this.parentNode.remove()">Delete</button>
+      `;
+      container.appendChild(memberDiv);
+    }
+
+    function payNow() {
+      const phone = document.getElementById("phone").value;
+      const family = document.getElementById("family_name").value;
+
+      // UPI deep link for Google Pay (replace with your UPI ID and amount)
+      const upiId = "yourupi@bank"; // your UPI ID
+      const amount = "500"; // registration fee
+      const name = "Choubisa Samaj";
+      const transactionNote = "Parichay Samelan Registration";
+
+      const upiLink = `upi://pay?pa=${upiId}&pn=${name}&mc=0000&tid=${Date.now()}&tr=${Date.now()}&tn=${transactionNote}&am=${amount}&cu=INR`;
+
+      // Redirect to Google Pay (or any UPI app)
+      window.location.href = upiLink;
+
+      // After redirection, trigger WhatsApp messages
+      setTimeout(() => {
+        const msg = `Registration Successful! Family: ${family}, Amount: ₹${amount}`;
+        // Send to Admin
+        window.open(`https://wa.me/919407420156?text=${msg}`, "_blank");
+        // Send to User
+        window.open(`https://wa.me/91${phone}?text=${msg}`, "_blank");
+      }, 3000); // wait 3 seconds before sending WhatsApp
+    }
+  </script>
+</body>
+</html>
+
+ 
