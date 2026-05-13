@@ -215,6 +215,7 @@
 
     const SK = { snap: "csp_snap", pending: "csp_pending", sent: "csp_sent", left: "csp_left" };
     let snap = null, pending = false, sent = false, leftForPayment = false;
+    let currentGpayLink = null, currentPhonepeLink = null, currentUpiLink = null;
 
     function showLoader(msg, sub) {
       loaderText.innerHTML = msg || "Processing payment&hellip;";
@@ -364,15 +365,15 @@
         return;
       }
       if (!isMobile) {
-        statusEl.textContent = `${appName} app cannot open directly on desktop web. Please scan QR to pay.`;
+        statusEl.textContent = `Desktop detected. Scan QR code above to pay with ${appName}.`;
         return;
       }
       leftForPayment = true;
       saveState();
-      window.location.href = link;
+      statusEl.textContent = `Opening ${appName} for payment...`;
       setTimeout(() => {
-        statusEl.textContent = `If ${appName} did not open, try another button or scan QR.`;
-      }, 1500);
+        window.location.href = link;
+      }, 300);
     }
 
     form.addEventListener("submit", function (e) {
@@ -464,9 +465,9 @@
       paymentRefEl = paymentRefEl || {};
     });
 
-    gpayBtn.addEventListener("click", (e) => handlePaymentButtonClick(e, gpayBtn.href, "Google Pay"));
-    phonepeBtn.addEventListener("click", (e) => handlePaymentButtonClick(e, phonepeBtn.href, "PhonePe"));
-    upiBtn.addEventListener("click", (e) => handlePaymentButtonClick(e, upiBtn.href, "UPI app"));
+    gpayBtn.addEventListener("click", (e) => handlePaymentButtonClick(e, currentGpayLink, "Google Pay"));
+    phonepeBtn.addEventListener("click", (e) => handlePaymentButtonClick(e, currentPhonepeLink, "PhonePe"));
+    upiBtn.addEventListener("click", (e) => handlePaymentButtonClick(e, currentUpiLink, "UPI App"));
 
     addMemberBtn.addEventListener("click", addMember);
     addMember();
