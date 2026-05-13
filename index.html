@@ -15,454 +15,358 @@
       --danger: #c1121f;
       --border: #d7e0dd;
     }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: radial-gradient(circle at top right, #d9efe9 0%, var(--bg) 55%); color: var(--text); padding: 20px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h2 { text-align: center; margin-bottom: 14px; }
+    .sub { text-align: center; margin: 0 0 24px; color: #38586d; }
+    form { background: var(--card); padding: 22px; border-radius: 14px; box-shadow: 0 10px 35px rgba(14,111,92,0.12); border: 1px solid var(--border); }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .full { grid-column: 1 / -1; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+    input, select, textarea, button { width: 100%; padding: 11px 12px; border-radius: 8px; border: 1px solid #c5d0cd; font-size: 14px; font-family: inherit; }
+    input[readonly] { background: #f0f4f3; cursor: not-allowed; color: #555; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid #b6e3d7; border-color: var(--primary); }
+    h3 { margin: 22px 0 10px; font-size: 19px; color: #173f35; }
+    .member { border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 10px; margin: 10px 0; padding: 12px; background: #fbfdfc; }
+    .member-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 700; }
+    .btn-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    button { cursor: pointer; border: none; font-weight: 600; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-accent { background: var(--accent); color: #1d1d1d; }
+    .btn-danger { background: var(--danger); color: #fff; width: auto; padding: 8px 12px; font-size: 13px; }
+    .notice { margin-top: 14px; padding: 12px; border-radius: 8px; background: #fff6da; border: 1px solid #f2d483; font-size: 14px; }
+    .hidden { display: none !important; }
+    .ok { color: #0d6c57; font-weight: 700; margin-top: 10px; }
+    .pay-link { display: inline-block; text-decoration: none; text-align: center; background: var(--primary); color: #fff; padding: 11px 12px; border-radius: 8px; font-weight: 600; }
+    #paymentQr { margin-top: 10px; border: 1px solid #ddd; border-radius: 8px; max-width: 220px; width: 100%; background: #fff; }
 
-    * {
-      box-sizing: border-box;
+    /* Loader overlay */
+    #loaderOverlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 9999;
     }
-
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: radial-gradient(circle at top right, #d9efe9 0%, var(--bg) 55%);
-      color: var(--text);
-      padding: 20px;
+    .spinner {
+      width: 60px; height: 60px;
+      border: 6px solid rgba(255,255,255,0.25);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.85s linear infinite;
     }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 14px;
-    }
-
-    .sub {
-      text-align: center;
-      margin: 0 0 24px;
-      color: #38586d;
-    }
-
-    form {
-      background: var(--card);
-      padding: 22px;
-      border-radius: 14px;
-      box-shadow: 0 10px 35px rgba(14, 111, 92, 0.12);
-      border: 1px solid var(--border);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .full {
-      grid-column: 1 / -1;
-    }
-
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 6px;
-      font-size: 14px;
-    }
-
-    input,
-    select,
-    textarea,
-    button {
-      width: 100%;
-      padding: 11px 12px;
-      border-radius: 8px;
-      border: 1px solid #c5d0cd;
-      font-size: 14px;
-      font-family: inherit;
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-      outline: 2px solid #b6e3d7;
-      border-color: var(--primary);
-    }
-
-    h3 {
-      margin: 22px 0 10px;
-      font-size: 19px;
-      color: #173f35;
-    }
-
-    .member {
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--primary);
-      border-radius: 10px;
-      margin: 10px 0;
-      padding: 12px;
-      background: #fbfdfc;
-    }
-
-    .member-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      font-weight: 700;
-    }
-
-    .btn-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 16px;
-      flex-wrap: wrap;
-    }
-
-    button {
-      cursor: pointer;
-      border: none;
-      font-weight: 600;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: #fff;
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-dark);
-    }
-
-    .btn-accent {
-      background: var(--accent);
-      color: #1d1d1d;
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: #fff;
-      width: auto;
-      padding: 8px 12px;
-      font-size: 13px;
-    }
-
-    .notice {
-      margin-top: 14px;
-      padding: 12px;
-      border-radius: 8px;
-      background: #fff6da;
-      border: 1px solid #f2d483;
-      font-size: 14px;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .ok {
-      color: #0d6c57;
-      font-weight: 700;
-      margin-top: 10px;
-    }
-
-    #manualPayBtn,
-    #gpayBtn,
-    #phonepeBtn {
-      text-decoration: none;
-      text-align: center;
-      display: inline-block;
-    }
-
-    #paymentQr {
-      margin-top: 10px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      max-width: 220px;
-      width: 100%;
-      background: #fff;
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader-text { color: #fff; margin-top: 18px; font-size: 16px; font-weight: 600; text-align: center; padding: 0 20px; }
 
     @media (max-width: 680px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      form {
-        padding: 14px;
-      }
+      .grid { grid-template-columns: 1fr; }
+      form { padding: 14px; }
     }
   </style>
 </head>
 <body>
+
+  <!-- Loader overlay (hidden by default) -->
+  <div id="loaderOverlay" class="hidden">
+    <div class="spinner"></div>
+    <div class="loader-text" id="loaderText">Redirecting to payment&hellip;</div>
+  </div>
+
   <div class="container">
     <h2>Choubisa Samaj Parichay Samelan Registration</h2>
-    <p class="sub">Fill family details, pay registration fee, and send details to admin WhatsApp.</p>
+    <p class="sub">Fill family details, pay registration fee &amp; details auto-send to admin WhatsApp.</p>
 
     <form id="registrationForm" novalidate>
+
+      <!-- Family details -->
       <div class="grid">
         <div>
-          <label for="familyOwner">Family Owner Name (Mandatory)</label>
+          <label for="familyOwner">Family Owner Name <span style="color:var(--danger)">*</span></label>
           <input type="text" id="familyOwner" placeholder="Enter family owner name" required>
         </div>
         <div>
-          <label for="familyName">Family Name</label>
+          <label for="familyName">Family Name <span style="color:var(--danger)">*</span></label>
           <input type="text" id="familyName" placeholder="Enter family surname" required>
         </div>
         <div class="full">
-          <label for="address">Address</label>
-          <textarea id="address" rows="2" placeholder="Enter address" required></textarea>
+          <label for="address">Address <span style="color:var(--danger)">*</span></label>
+          <textarea id="address" rows="2" placeholder="Enter full address" required></textarea>
         </div>
         <div>
-          <label for="phone">Phone Number</label>
-          <input type="tel" id="phone" placeholder="10-digit mobile number" pattern="[0-9]{10}" required>
+          <label for="phone">Phone Number <span style="color:var(--danger)">*</span></label>
+          <input type="tel" id="phone" placeholder="10-digit mobile number" pattern="[0-9]{10}" maxlength="10" required>
         </div>
         <div>
           <label for="amount">Registration Amount (INR)</label>
-          <input type="number" id="amount" min="1" value="1" readonly required>
+          <input type="number" id="amount" value="1" readonly>
         </div>
       </div>
 
+      <!-- Family members -->
       <h3>Family Members</h3>
       <div id="members"></div>
-      <button type="button" class="btn-accent" id="addMemberBtn">Add Family Member</button>
+      <button type="button" class="btn-accent" id="addMemberBtn" style="margin-top:8px;">+ Add Family Member</button>
 
+      <!-- Register button -->
       <div class="btn-row">
-        <button type="submit" class="btn-primary">Register & Show Payment Options</button>
+        <button type="submit" class="btn-primary" style="flex:1;">Register &amp; Pay Now</button>
       </div>
 
       <div class="notice">
-        On Register, payment options will appear below. Choose Google Pay, PhonePe, or any UPI app. After payment, enter UTR/Transaction ID and send details to admin WhatsApp.
+        On Register, you are redirected to Google Pay / UPI for payment. Once you complete payment and return, family details are automatically sent to admin WhatsApp.
       </div>
 
+      <!-- Fallback payment options shown after launch -->
       <div id="paymentFallback" class="notice hidden">
-        If Google Pay does not open automatically:
-        <div class="btn-row" style="margin-top: 10px;">
-          <a id="gpayBtn" class="btn-primary" href="#">Open Google Pay</a>
-          <a id="phonepeBtn" class="btn-primary" href="#">Open PhonePe</a>
-          <a id="manualPayBtn" class="btn-primary" href="#">Pay with UPI App</a>
+        <strong>Payment options</strong> &mdash; tap to pay from your bank-linked UPI app:
+        <div class="btn-row" style="margin-top:10px; flex-wrap:wrap;">
+          <a id="gpayBtn"     class="pay-link" href="#">Open Google Pay</a>
+          <a id="phonepeBtn"  class="pay-link" href="#">Open PhonePe</a>
+          <a id="upiBtn"      class="pay-link" href="#">Any UPI App</a>
         </div>
-        <img id="paymentQr" class="hidden" alt="UPI Payment QR">
+        <img id="paymentQr" class="hidden" alt="UPI QR">
+        <div style="margin-top:8px; font-size:13px; color:#555;">Scan QR from phone camera or any UPI app if buttons do not open.</div>
       </div>
 
-      <div id="paymentConfirmSection" class="hidden">
-        <h3>Payment Confirmation</h3>
-        <div class="grid">
-          <div>
-            <label for="transactionId">UTR / Transaction ID</label>
-            <input type="text" id="transactionId" placeholder="Enter payment transaction ID">
-          </div>
-          <div style="align-self: end;">
-            <button type="button" id="sendWhatsAppBtn" class="btn-primary">Send Details to Admin WhatsApp</button>
-          </div>
-        </div>
-        <div id="status" class="ok"></div>
-      </div>
+      <!-- Status -->
+      <div id="status" class="ok" style="margin-top:14px;"></div>
+
     </form>
   </div>
 
   <script>
+    /* ── Config ─────────────────────────────────────── */
     const ADMIN_WHATSAPP = "919407420156";
-    const UPI_ID = "gotipandey@okhdfcbank";
-    const UPI_NAME = "Choubisa Samaj";
+    const UPI_ID         = "gotipandey@okhdfcbank";
+    const UPI_NAME       = "Choubisa Samaj";
 
-    const form = document.getElementById("registrationForm");
-    const membersContainer = document.getElementById("members");
-    const addMemberBtn = document.getElementById("addMemberBtn");
-    const paymentConfirmSection = document.getElementById("paymentConfirmSection");
-    const paymentFallback = document.getElementById("paymentFallback");
-    const gpayBtn = document.getElementById("gpayBtn");
-    const phonepeBtn = document.getElementById("phonepeBtn");
-    const manualPayBtn = document.getElementById("manualPayBtn");
-    const paymentQr = document.getElementById("paymentQr");
-    const sendWhatsAppBtn = document.getElementById("sendWhatsAppBtn");
-    const statusEl = document.getElementById("status");
+    /* ── DOM refs ───────────────────────────────────── */
+    const form           = document.getElementById("registrationForm");
+    const membersEl      = document.getElementById("members");
+    const addMemberBtn   = document.getElementById("addMemberBtn");
+    const paymentFallback= document.getElementById("paymentFallback");
+    const gpayBtn        = document.getElementById("gpayBtn");
+    const phonepeBtn     = document.getElementById("phonepeBtn");
+    const upiBtn         = document.getElementById("upiBtn");
+    const paymentQr      = document.getElementById("paymentQr");
+    const statusEl       = document.getElementById("status");
+    const loaderOverlay  = document.getElementById("loaderOverlay");
+    const loaderText     = document.getElementById("loaderText");
 
-    let registrationSnapshot = null;
+    /* ── Session storage keys ───────────────────────── */
+    const SK = {
+      snap:    "csp_snap",
+      pending: "csp_pending",
+      sent:    "csp_sent"
+    };
 
-    function createMemberCard(memberIndex) {
-      const member = document.createElement("div");
-      member.className = "member";
-      member.innerHTML = `
+    let snap    = null;
+    let pending = false;
+    let sent    = false;
+
+    /* ── Loader helpers ─────────────────────────────── */
+    function showLoader(msg) {
+      loaderText.textContent = msg || "Redirecting to payment…";
+      loaderOverlay.classList.remove("hidden");
+    }
+    function hideLoader() {
+      loaderOverlay.classList.add("hidden");
+    }
+
+    /* ── Session helpers ────────────────────────────── */
+    function saveState() {
+      sessionStorage.setItem(SK.snap,    snap    ? JSON.stringify(snap) : "");
+      sessionStorage.setItem(SK.pending, pending ? "1" : "0");
+      sessionStorage.setItem(SK.sent,    sent    ? "1" : "0");
+    }
+    function loadState() {
+      const s = sessionStorage.getItem(SK.snap);
+      snap    = s ? JSON.parse(s) : null;
+      pending = sessionStorage.getItem(SK.pending) === "1";
+      sent    = sessionStorage.getItem(SK.sent)    === "1";
+    }
+
+    /* ── Member card ────────────────────────────────── */
+    function addMember() {
+      const idx  = membersEl.querySelectorAll(".member").length + 1;
+      const card = document.createElement("div");
+      card.className = "member";
+      card.innerHTML = `
         <div class="member-head">
-          <span>Member ${memberIndex}</span>
-          <button type="button" class="btn-danger">Delete Member</button>
+          <span>Member ${idx}</span>
+          <button type="button" class="btn-danger">Delete</button>
         </div>
         <div class="grid">
-          <div>
-            <label>Member Name</label>
-            <input type="text" name="member_name" required>
-          </div>
-          <div>
-            <label>Age</label>
-            <input type="number" name="member_age" min="0" required>
-          </div>
-          <div>
-            <label>Relation</label>
-            <input type="text" name="member_relation" required>
-          </div>
+          <div><label>Name</label><input type="text" name="member_name" required></div>
+          <div><label>Age</label><input type="number" name="member_age" min="0" required></div>
+          <div><label>Relation</label><input type="text" name="member_relation" required></div>
           <div>
             <label>Marital Status</label>
             <select name="member_status" required>
               <option value="">Select</option>
-              <option value="Unmarried">Unmarried</option>
-              <option value="Married">Married</option>
+              <option>Unmarried</option>
+              <option>Married</option>
             </select>
           </div>
-        </div>
-      `;
-
-      const deleteBtn = member.querySelector(".btn-danger");
-      deleteBtn.addEventListener("click", function () {
-        member.remove();
-        renumberMembers();
+        </div>`;
+      card.querySelector(".btn-danger").addEventListener("click", () => {
+        card.remove();
+        membersEl.querySelectorAll(".member").forEach((c, i) => {
+          c.querySelector(".member-head span").textContent = `Member ${i + 1}`;
+        });
       });
-
-      return member;
-    }
-
-    function renumberMembers() {
-      const cards = membersContainer.querySelectorAll(".member");
-      cards.forEach(function (card, idx) {
-        const title = card.querySelector(".member-head span");
-        title.textContent = `Member ${idx + 1}`;
-      });
-    }
-
-    function addMember() {
-      const memberNumber = membersContainer.querySelectorAll(".member").length + 1;
-      const card = createMemberCard(memberNumber);
-      membersContainer.appendChild(card);
+      membersEl.appendChild(card);
     }
 
     function getMembersData() {
-      const cards = membersContainer.querySelectorAll(".member");
-      const members = [];
-
-      cards.forEach(function (card) {
-        members.push({
-          name: card.querySelector('input[name="member_name"]').value.trim(),
-          age: card.querySelector('input[name="member_age"]').value.trim(),
-          relation: card.querySelector('input[name="member_relation"]').value.trim(),
-          status: card.querySelector('select[name="member_status"]').value
-        });
-      });
-
-      return members;
+      return Array.from(membersEl.querySelectorAll(".member")).map(c => ({
+        name:     c.querySelector('[name="member_name"]').value.trim(),
+        age:      c.querySelector('[name="member_age"]').value.trim(),
+        relation: c.querySelector('[name="member_relation"]').value.trim(),
+        status:   c.querySelector('[name="member_status"]').value
+      }));
     }
 
-    function showPaymentFallback(upiDeepLink, gpayIntentLink, phonepeIntentLink) {
-      paymentFallback.classList.remove("hidden");
-      gpayBtn.href = gpayIntentLink;
-      phonepeBtn.href = phonepeIntentLink;
-      manualPayBtn.href = upiDeepLink;
-      paymentQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiDeepLink)}`;
-      paymentQr.classList.remove("hidden");
-    }
-
-    function openGooglePay(regData) {
-      const pa = encodeURIComponent(UPI_ID);
-      const pn = encodeURIComponent(UPI_NAME);
-      const amount = encodeURIComponent(regData.amount);
-      const tid = Date.now().toString();
-      const note = encodeURIComponent("Parichay Samelan Registration");
-      const query = `pa=${pa}&pn=${pn}&am=${amount}&cu=INR&tn=${note}&tid=${tid}&tr=${tid}`;
-      const upiDeepLink = `upi://pay?${query}`;
-      const gpayIntentLink = `intent://pay?${query}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-      const phonepeIntentLink = `intent://pay?${query}#Intent;scheme=upi;package=com.phonepe.app;end`;
-
-      showPaymentFallback(upiDeepLink, gpayIntentLink, phonepeIntentLink);
-
-      // Keep this flow deterministic: always show options instead of relying on auto-redirect.
-      statusEl.textContent = "Choose a payment option below. If on desktop, scan QR from your phone.";
-    }
-
-    function buildWhatsAppMessage(regData, txId) {
-      const lines = [];
-      lines.push("New Family Registration");
-      lines.push("-----------------------------");
-      lines.push(`Family Owner: ${regData.familyOwner}`);
-      lines.push(`Family Name: ${regData.familyName}`);
-      lines.push(`Address: ${regData.address}`);
-      lines.push(`Phone: ${regData.phone}`);
-      lines.push(`Amount Paid: INR ${regData.amount}`);
-      lines.push(`Transaction ID: ${txId}`);
-      lines.push("Family Members:");
-
-      regData.members.forEach(function (m, idx) {
-        lines.push(`${idx + 1}. ${m.name} | Age: ${m.age} | Relation: ${m.relation} | Status: ${m.status}`);
-      });
-
+    /* ── Build WhatsApp message ──────────────────────── */
+    function buildMessage(data) {
+      const lines = [
+        "New Family Registration",
+        "-----------------------------",
+        `Family Owner : ${data.familyOwner}`,
+        `Family Name  : ${data.familyName}`,
+        `Address      : ${data.address}`,
+        `Phone        : ${data.phone}`,
+        `Amount Paid  : INR ${data.amount}`,
+        "Family Members:"
+      ];
+      data.members.forEach((m, i) =>
+        lines.push(`  ${i+1}. ${m.name} | Age: ${m.age} | ${m.relation} | ${m.status}`)
+      );
       return lines.join("\n");
     }
 
-    function validateMemberCount() {
-      const count = membersContainer.querySelectorAll(".member").length;
-      if (count < 1) {
-        alert("Please add at least one family member.");
-        return false;
-      }
-      return true;
+    /* ── Auto send to admin WhatsApp ────────────────── */
+    function sendToAdmin() {
+      if (!snap || sent) return;
+      sent    = true;
+      pending = false;
+      saveState();
+      hideLoader();
+      const msg = buildMessage(snap);
+      const url = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+      statusEl.textContent = "Payment received. Sending family details to admin WhatsApp…";
+      window.location.href = url;
     }
 
-    addMemberBtn.addEventListener("click", addMember);
+    function checkReturnFromPayment() {
+      loadState();
+      if (pending && !sent && snap) {
+        showLoader("Confirming payment… opening admin WhatsApp.");
+        setTimeout(sendToAdmin, 1200);
+      }
+    }
 
-    form.addEventListener("submit", function (event) {
-      event.preventDefault();
+    /* ── Payment launch ─────────────────────────────── */
+    function launchPayment(data) {
+      const tid    = Date.now().toString();
+      const params = new URLSearchParams({
+        pa: UPI_ID, pn: UPI_NAME,
+        am: data.amount, cu: "INR",
+        tn: "Parichay Samelan Registration",
+        tid, tr: tid
+      });
+      const upiLink      = `upi://pay?${params}`;
+      const gpayLink     = `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+      const phonepeLink  = `intent://pay?${params}#Intent;scheme=upi;package=com.phonepe.app;end`;
+
+      /* populate fallback buttons */
+      gpayBtn.href    = gpayLink;
+      phonepeBtn.href = phonepeLink;
+      upiBtn.href     = upiLink;
+      paymentQr.src   = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiLink)}`;
+      paymentQr.classList.remove("hidden");
+      paymentFallback.classList.remove("hidden");
+
+      /* save state before leaving */
+      snap    = data;
+      pending = true;
+      sent    = false;
+      saveState();
+
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      const isMobile  = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+      showLoader("Redirecting to payment app…");
+
+      if (isAndroid) {
+        window.location.href = gpayLink;
+        setTimeout(() => { window.location.href = upiLink; }, 1000);
+      } else if (isMobile) {
+        window.location.href = upiLink;
+      } else {
+        hideLoader();
+        statusEl.textContent = "On desktop: use the payment buttons below or scan the QR from your phone. After payment, return here.";
+      }
+    }
+
+    /* ── Form submit ────────────────────────────────── */
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
       statusEl.textContent = "";
 
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-      }
+      /* validate visible form fields manually (avoid hidden-field blocking) */
+      const fields = ["familyOwner", "familyName", "address", "phone"];
+      let valid = true;
+      fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el.value.trim()) {
+          el.reportValidity();
+          valid = false;
+        }
+      });
+      if (!valid) return;
 
-      if (!validateMemberCount()) {
+      const phone = document.getElementById("phone").value.trim();
+      if (!/^[0-9]{10}$/.test(phone)) {
+        alert("Enter a valid 10-digit phone number.");
         return;
       }
 
       const members = getMembersData();
-      const hasInvalidMember = members.some(function (m) {
-        return !m.name || !m.age || !m.relation || !m.status;
-      });
-
-      if (hasInvalidMember) {
+      if (members.length === 0) {
+        alert("Please add at least one family member.");
+        return;
+      }
+      const bad = members.some(m => !m.name || !m.age || !m.relation || !m.status);
+      if (bad) {
         alert("Please fill all family member details.");
         return;
       }
 
-      registrationSnapshot = {
-        familyName: (document.getElementById("familyName") || { value: "" }).value.trim(),
+      const data = {
         familyOwner: document.getElementById("familyOwner").value.trim(),
-        address: document.getElementById("address").value.trim(),
-        phone: document.getElementById("phone").value.trim(),
-        amount: document.getElementById("amount").value.trim(),
-        members: members
+        familyName:  document.getElementById("familyName").value.trim(),
+        address:     document.getElementById("address").value.trim(),
+        phone:       phone,
+        amount:      document.getElementById("amount").value.trim(),
+        members
       };
 
-      paymentConfirmSection.classList.remove("hidden");
-      openGooglePay(registrationSnapshot);
+      launchPayment(data);
     });
 
-    sendWhatsAppBtn.addEventListener("click", function () {
-      const txId = document.getElementById("transactionId").value.trim();
+    addMemberBtn.addEventListener("click", addMember);
 
-      if (!registrationSnapshot) {
-        alert("Please complete registration first.");
-        return;
-      }
-
-      if (!txId) {
-        alert("Please enter UTR / Transaction ID after payment.");
-        return;
-      }
-
-      const message = buildWhatsAppMessage(registrationSnapshot, txId);
-      const waUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(message)}`;
-      window.open(waUrl, "_blank");
-      statusEl.textContent = "Details ready and sent to Admin WhatsApp window.";
+    /* ── Page-focus / visibility triggers ───────────── */
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) checkReturnFromPayment();
     });
+    window.addEventListener("focus",    checkReturnFromPayment);
+    window.addEventListener("pageshow", checkReturnFromPayment);
 
-    // Start with one member block by default.
+    /* ── Init ───────────────────────────────────────── */
     addMember();
+    checkReturnFromPayment();
   </script>
 </body>
 </html>
