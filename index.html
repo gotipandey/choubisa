@@ -165,6 +165,23 @@
       margin-top: 10px;
     }
 
+    #manualPayBtn,
+    #gpayBtn,
+    #phonepeBtn {
+      text-decoration: none;
+      text-align: center;
+      display: inline-block;
+    }
+
+    #paymentQr {
+      margin-top: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      max-width: 220px;
+      width: 100%;
+      background: #fff;
+    }
+
     @media (max-width: 680px) {
       .grid {
         grid-template-columns: 1fr;
@@ -210,11 +227,21 @@
       <button type="button" class="btn-accent" id="addMemberBtn">Add Family Member</button>
 
       <div class="btn-row">
-        <button type="submit" class="btn-primary">Register & Go to Google Pay</button>
+        <button type="submit" class="btn-primary">Register & Show Payment Options</button>
       </div>
 
       <div class="notice">
-        On Register, Google Pay is opened for payment. After successful payment, enter UTR/Transaction ID and click Send to Admin WhatsApp.
+        On Register, payment options will appear below. Choose Google Pay, PhonePe, or any UPI app. After payment, enter UTR/Transaction ID and send details to admin WhatsApp.
+      </div>
+
+      <div id="paymentFallback" class="notice hidden">
+        If Google Pay does not open automatically:
+        <div class="btn-row" style="margin-top: 10px;">
+          <a id="gpayBtn" class="btn-primary" href="#">Open Google Pay</a>
+          <a id="phonepeBtn" class="btn-primary" href="#">Open PhonePe</a>
+          <a id="manualPayBtn" class="btn-primary" href="#">Pay with UPI App</a>
+        </div>
+        <img id="paymentQr" class="hidden" alt="UPI Payment QR">
       </div>
 
       <div id="paymentConfirmSection" class="hidden">
@@ -222,7 +249,7 @@
         <div class="grid">
           <div>
             <label for="transactionId">UTR / Transaction ID</label>
-            <input type="text" id="transactionId" placeholder="Enter payment transaction ID" required>
+            <input type="text" id="transactionId" placeholder="Enter payment transaction ID">
           </div>
           <div style="align-self: end;">
             <button type="button" id="sendWhatsAppBtn" class="btn-primary">Send Details to Admin WhatsApp</button>
@@ -242,6 +269,11 @@
     const membersContainer = document.getElementById("members");
     const addMemberBtn = document.getElementById("addMemberBtn");
     const paymentConfirmSection = document.getElementById("paymentConfirmSection");
+    const paymentFallback = document.getElementById("paymentFallback");
+    const gpayBtn = document.getElementById("gpayBtn");
+    const phonepeBtn = document.getElementById("phonepeBtn");
+    const manualPayBtn = document.getElementById("manualPayBtn");
+    const paymentQr = document.getElementById("paymentQr");
     const sendWhatsAppBtn = document.getElementById("sendWhatsAppBtn");
     const statusEl = document.getElementById("status");
 
@@ -318,25 +350,30 @@
       return members;
     }
 
+    function showPaymentFallback(upiDeepLink, gpayIntentLink, phonepeIntentLink) {
+      paymentFallback.classList.remove("hidden");
+      gpayBtn.href = gpayIntentLink;
+      phonepeBtn.href = phonepeIntentLink;
+      manualPayBtn.href = upiDeepLink;
+      paymentQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiDeepLink)}`;
+      paymentQr.classList.remove("hidden");
+    }
+
     function openGooglePay(regData) {
+      const pa = encodeURIComponent(UPI_ID);
+      const pn = encodeURIComponent(UPI_NAME);
       const amount = encodeURIComponent(regData.amount);
       const tid = Date.now().toString();
       const note = encodeURIComponent("Parichay Samelan Registration");
-      const payee = encodeURIComponent(UPI_NAME);
-      const upiQuery = `pay?pa=${UPI_ID}&pn=${payee}&am=${amount}&cu=INR&tn=${note}&tid=${tid}&tr=${tid}`;
-      const upiDeepLink = `upi://${upiQuery}`;
-      const gpayIntentLink = `intent://${upiQuery}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-      const isAndroid = /Android/i.test(navigator.userAgent);
+      const query = `pa=${pa}&pn=${pn}&am=${amount}&cu=INR&tn=${note}&tid=${tid}&tr=${tid}`;
+      const upiDeepLink = `upi://pay?${query}`;
+      const gpayIntentLink = `intent://pay?${query}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+      const phonepeIntentLink = `intent://pay?${query}#Intent;scheme=upi;package=com.phonepe.app;end`;
 
-      // Intent link works better for Android Chrome; normal upi:// is kept as fallback.
-      if (isAndroid) {
-        window.location.href = gpayIntentLink;
-        setTimeout(function () {
-          window.location.href = upiDeepLink;
-        }, 1200);
-      } else {
-        statusEl.textContent = "Google Pay auto-open works on mobile with UPI app. On desktop, please open this form on your phone.";
-      }
+      showPaymentFallback(upiDeepLink, gpayIntentLink, phonepeIntentLink);
+
+      // Keep this flow deterministic: always show options instead of relying on auto-redirect.
+      statusEl.textContent = "Choose a payment option below. If on desktop, scan QR from your phone.";
     }
 
     function buildWhatsAppMessage(regData, txId) {
