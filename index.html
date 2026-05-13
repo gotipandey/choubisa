@@ -216,6 +216,7 @@
     const SK = { snap: "csp_snap", pending: "csp_pending", sent: "csp_sent", left: "csp_left" };
     let snap = null, pending = false, sent = false, leftForPayment = false;
     let currentGpayLink = null, currentPhonepeLink = null, currentUpiLink = null;
+    let canRedirectToWhatsApp = false;
 
     function showLoader(msg, sub) {
       loaderText.innerHTML = msg || "Processing payment&hellip;";
@@ -313,9 +314,14 @@
 
     function sendToAdmin() {
       if (!snap || sent) return;
+      if (!canRedirectToWhatsApp) {
+        statusEl.textContent = "Complete payment in Google Pay first, then confirm payment.";
+        return;
+      }
       sent = true;
       pending = false;
       leftForPayment = false;
+      canRedirectToWhatsApp = false;
       saveState();
       showLoader("Payment detected&hellip;", "Redirecting to WhatsApp to send details to admin.");
       const msg = buildMessage(snap);
@@ -348,6 +354,7 @@
       paymentQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiLink)}`;
 
       paymentSection.classList.remove("hidden");
+      canRedirectToWhatsApp = false;
 
       if (isAndroid) {
         leftForPayment = true;
@@ -378,6 +385,7 @@
       }
       leftForPayment = true;
       saveState();
+      canRedirectToWhatsApp = false;
       statusEl.textContent = `Opening ${appName} for payment...`;
       setTimeout(() => {
         window.location.href = link;
@@ -428,6 +436,7 @@
       pending = true;
       sent = false;
       leftForPayment = false;
+      canRedirectToWhatsApp = false;
       saveState();
 
       statusEl.textContent = "Payment started. Complete payment and return to this page.";
@@ -462,12 +471,14 @@
 
     paymentConfirmYes.addEventListener("click", () => {
       hidePaymentConfirmModal();
+      canRedirectToWhatsApp = true;
       sendToAdmin();
     });
 
     paymentConfirmNo.addEventListener("click", () => {
       hidePaymentConfirmModal();
       leftForPayment = false;
+      canRedirectToWhatsApp = false;
       saveState();
       statusEl.textContent = "Returning to payment options. Scan QR or choose app again.";
     });
@@ -481,10 +492,12 @@
 
     loadState();
     if (pending && !sent && snap) {
-      setupPaymentLinks(snap);
-      if (leftForPayment) {
-        statusEl.textContent = "Payment app opened. Complete payment there and return here.";
-      }
+      pending = false;
+      leftForPayment = false;
+      sent = false;
+      canRedirectToWhatsApp = false;
+      saveState();
+      statusEl.textContent = "Previous payment session was reset. Click Register & Pay Securely to start fresh.";
     }
   </script>
 </body>
