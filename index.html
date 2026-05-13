@@ -36,49 +36,77 @@
     .btn-primary:hover { background: var(--primary-dark); }
     .btn-accent { background: var(--accent); color: #1d1d1d; }
     .btn-danger { background: var(--danger); color: #fff; width: auto; padding: 8px 12px; font-size: 13px; }
-    .notice { margin-top: 14px; padding: 12px; border-radius: 8px; background: #fff6da; border: 1px solid #f2d483; font-size: 14px; }
     .hidden { display: none !important; }
     .ok { color: #0d6c57; font-weight: 700; margin-top: 10px; }
-    .pay-link { display: inline-block; text-decoration: none; text-align: center; background: var(--primary); color: #fff; padding: 11px 12px; border-radius: 8px; font-weight: 600; }
-    #paymentQr { margin-top: 10px; border: 1px solid #ddd; border-radius: 8px; max-width: 220px; width: 100%; background: #fff; }
 
-    /* Loader overlay */
     #loaderOverlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.55);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: fixed; inset: 0;
+      background: rgba(10, 80, 60, 0.88);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
       z-index: 9999;
     }
     .spinner {
-      width: 60px; height: 60px;
-      border: 6px solid rgba(255,255,255,0.25);
+      width: 68px; height: 68px;
+      border: 7px solid rgba(255,255,255,0.2);
       border-top-color: #fff;
       border-radius: 50%;
-      animation: spin 0.85s linear infinite;
+      animation: spin 0.9s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .loader-text { color: #fff; margin-top: 18px; font-size: 16px; font-weight: 600; text-align: center; padding: 0 20px; }
+    .loader-text { color: #fff; margin-top: 22px; font-size: 18px; font-weight: 700; text-align: center; padding: 0 24px; line-height: 1.5; }
+    .loader-sub  { color: rgba(255,255,255,0.75); margin-top: 8px; font-size: 14px; text-align: center; padding: 0 24px; }
+
+    #qrPaySection {
+      margin-top: 20px; padding: 20px;
+      border-radius: 12px; background: #f0faf7;
+      border: 2px solid var(--primary); text-align: center;
+    }
+    #qrPaySection h3 { margin: 0 0 6px; color: var(--primary-dark); font-size: 20px; }
+    #qrPaySection p  { margin: 4px 0 14px; color: #444; font-size: 14px; }
+    #paymentQr {
+      display: block; margin: 0 auto 16px;
+      border: 3px solid var(--primary); border-radius: 12px;
+      width: 260px; height: 260px; background: #fff;
+    }
+    .qr-upi-detail {
+      font-size: 13px; color: #555; margin-bottom: 16px;
+      background: #e8f5f1; border-radius: 8px;
+      padding: 8px 14px; display: inline-block;
+    }
+    .waiting-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #fff8e1; border: 1px solid #f3c34a;
+      border-radius: 20px; padding: 6px 16px;
+      font-size: 13px; color: #7a5800; font-weight: 600;
+      margin-bottom: 14px;
+    }
+    .waiting-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #f3a712;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
 
     @media (max-width: 680px) {
       .grid { grid-template-columns: 1fr; }
       form { padding: 14px; }
+      #paymentQr { width: 210px; height: 210px; }
     }
   </style>
 </head>
 <body>
-
-  <!-- Loader overlay (hidden by default) -->
   <div id="loaderOverlay" class="hidden">
     <div class="spinner"></div>
-    <div class="loader-text" id="loaderText">Redirecting to payment&hellip;</div>
+    <div class="loader-text" id="loaderText">Confirming your payment&hellip;</div>
+    <div class="loader-sub" id="loaderSub">Please wait while we process and send your details to admin.</div>
   </div>
 
   <div class="container">
     <h2>Choubisa Samaj Parichay Samelan Registration</h2>
-    <p class="sub">Fill family details, pay registration fee &amp; details auto-send to admin WhatsApp.</p>
+    <p class="sub">Fill family details &amp; pay via QR code. Details are auto-sent to admin after payment.</p>
 
     <form id="registrationForm" novalidate>
-
-      <!-- Family details -->
       <div class="grid">
         <div>
           <label for="familyOwner">Family Owner Name <span style="color:var(--danger)">*</span></label>
@@ -98,97 +126,85 @@
         </div>
         <div>
           <label for="amount">Registration Amount (INR)</label>
-          <input type="number" id="amount" value="1" readonly>
+          <input type="number" id="amount" value="500" readonly>
         </div>
       </div>
 
-      <!-- Family members -->
       <h3>Family Members</h3>
       <div id="members"></div>
       <button type="button" class="btn-accent" id="addMemberBtn" style="margin-top:8px;">+ Add Family Member</button>
 
-      <!-- Register button -->
       <div class="btn-row">
-        <button type="submit" class="btn-primary" style="flex:1;">Register &amp; Pay Now</button>
+        <button type="submit" class="btn-primary" style="flex:1;">Register &amp; Show Payment QR</button>
       </div>
 
-      <div class="notice">
-        On Register, you are redirected to Google Pay / UPI for payment. Once you complete payment and return, family details are automatically sent to admin WhatsApp.
-      </div>
-
-      <!-- Fallback payment options shown after launch -->
-      <div id="paymentFallback" class="notice hidden">
-        <strong>Payment options</strong> &mdash; tap to pay from your bank-linked UPI app:
-        <div class="btn-row" style="margin-top:10px; flex-wrap:wrap;">
-          <a id="gpayBtn"     class="pay-link" href="#">Open Google Pay</a>
-          <a id="phonepeBtn"  class="pay-link" href="#">Open PhonePe</a>
-          <a id="upiBtn"      class="pay-link" href="#">Any UPI App</a>
+      <div id="qrPaySection" class="hidden">
+        <h3>&#128179; Scan &amp; Pay</h3>
+        <p>Scan the QR code using any UPI app (GPay, PhonePe, Paytm&hellip;) and pay <strong>&#8377;<span id="qrAmount"></span></strong>.<br>
+           <em>After payment is completed and you return here, details are auto-sent to admin.</em></p>
+        <img id="paymentQr" alt="UPI Payment QR Code">
+        <div class="qr-upi-detail">
+          UPI ID: <strong>gotipandey@okhdfcbank</strong> &nbsp;|&nbsp; Name: <strong>Choubisa Samaj</strong>
         </div>
-        <img id="paymentQr" class="hidden" alt="UPI QR">
-        <div style="margin-top:8px; font-size:13px; color:#555;">Scan QR from phone camera or any UPI app if buttons do not open.</div>
+        <div class="waiting-badge">
+          <div class="waiting-dot"></div>
+          Waiting for payment confirmation&hellip;
+        </div>
       </div>
 
-      <!-- Status -->
       <div id="status" class="ok" style="margin-top:14px;"></div>
-
     </form>
   </div>
 
   <script>
-    /* ── Config ─────────────────────────────────────── */
     const ADMIN_WHATSAPP = "919407420156";
     const UPI_ID         = "gotipandey@okhdfcbank";
     const UPI_NAME       = "Choubisa Samaj";
 
-    /* ── DOM refs ───────────────────────────────────── */
-    const form           = document.getElementById("registrationForm");
-    const membersEl      = document.getElementById("members");
-    const addMemberBtn   = document.getElementById("addMemberBtn");
-    const paymentFallback= document.getElementById("paymentFallback");
-    const gpayBtn        = document.getElementById("gpayBtn");
-    const phonepeBtn     = document.getElementById("phonepeBtn");
-    const upiBtn         = document.getElementById("upiBtn");
-    const paymentQr      = document.getElementById("paymentQr");
-    const statusEl       = document.getElementById("status");
-    const loaderOverlay  = document.getElementById("loaderOverlay");
-    const loaderText     = document.getElementById("loaderText");
+    const form          = document.getElementById("registrationForm");
+    const membersEl     = document.getElementById("members");
+    const addMemberBtn  = document.getElementById("addMemberBtn");
+    const qrPaySection  = document.getElementById("qrPaySection");
+    const paymentQr     = document.getElementById("paymentQr");
+    const qrAmount      = document.getElementById("qrAmount");
+    const statusEl      = document.getElementById("status");
+    const loaderOverlay = document.getElementById("loaderOverlay");
+    const loaderText    = document.getElementById("loaderText");
+    const loaderSub     = document.getElementById("loaderSub");
 
-    /* ── Session storage keys ───────────────────────── */
-    const SK = {
-      snap:    "csp_snap",
-      pending: "csp_pending",
-      sent:    "csp_sent"
-    };
+    const SK = { snap: "csp_snap", pending: "csp_pending", sent: "csp_sent", left: "csp_left", hiddenAt: "csp_hidden_at" };
+    let snap = null, pending = false, sent = false, leftForPayment = false, hiddenAt = 0;
+    let redirectInProgress = false;
 
-    let snap    = null;
-    let pending = false;
-    let sent    = false;
+    function saveState() {
+      sessionStorage.setItem(SK.snap, snap ? JSON.stringify(snap) : "");
+      sessionStorage.setItem(SK.pending, pending ? "1" : "0");
+      sessionStorage.setItem(SK.sent, sent ? "1" : "0");
+      sessionStorage.setItem(SK.left, leftForPayment ? "1" : "0");
+      sessionStorage.setItem(SK.hiddenAt, hiddenAt ? String(hiddenAt) : "0");
+    }
 
-    /* ── Loader helpers ─────────────────────────────── */
-    function showLoader(msg) {
-      loaderText.textContent = msg || "Redirecting to payment…";
+    function loadState() {
+      const s = sessionStorage.getItem(SK.snap);
+      snap = s ? JSON.parse(s) : null;
+      pending = sessionStorage.getItem(SK.pending) === "1";
+      sent = sessionStorage.getItem(SK.sent) === "1";
+      leftForPayment = sessionStorage.getItem(SK.left) === "1";
+      hiddenAt = Number(sessionStorage.getItem(SK.hiddenAt) || "0");
+    }
+
+    function showLoader(msg, sub) {
+      loaderText.innerHTML = msg || "Confirming your payment&hellip;";
+      loaderSub.textContent = sub || "Please wait while we process and send your details to admin.";
       loaderOverlay.classList.remove("hidden");
     }
+
     function hideLoader() {
       loaderOverlay.classList.add("hidden");
     }
 
-    /* ── Session helpers ────────────────────────────── */
-    function saveState() {
-      sessionStorage.setItem(SK.snap,    snap    ? JSON.stringify(snap) : "");
-      sessionStorage.setItem(SK.pending, pending ? "1" : "0");
-      sessionStorage.setItem(SK.sent,    sent    ? "1" : "0");
-    }
-    function loadState() {
-      const s = sessionStorage.getItem(SK.snap);
-      snap    = s ? JSON.parse(s) : null;
-      pending = sessionStorage.getItem(SK.pending) === "1";
-      sent    = sessionStorage.getItem(SK.sent)    === "1";
-    }
-
-    /* ── Member card ────────────────────────────────── */
     function addMember() {
-      const idx  = membersEl.querySelectorAll(".member").length + 1;
+      const idx = membersEl.querySelectorAll(".member").length + 1;
       const card = document.createElement("div");
       card.className = "member";
       card.innerHTML = `
@@ -220,101 +236,114 @@
 
     function getMembersData() {
       return Array.from(membersEl.querySelectorAll(".member")).map(c => ({
-        name:     c.querySelector('[name="member_name"]').value.trim(),
-        age:      c.querySelector('[name="member_age"]').value.trim(),
+        name: c.querySelector('[name="member_name"]').value.trim(),
+        age: c.querySelector('[name="member_age"]').value.trim(),
         relation: c.querySelector('[name="member_relation"]').value.trim(),
-        status:   c.querySelector('[name="member_status"]').value
+        status: c.querySelector('[name="member_status"]').value
       }));
     }
 
-    /* ── Build WhatsApp message ──────────────────────── */
     function buildMessage(data) {
       const lines = [
-        "New Family Registration",
-        "-----------------------------",
+        "New Family Registration - Choubisa Samaj Parichay Samelan",
+        "------------------------------------------------------------",
         `Family Owner : ${data.familyOwner}`,
         `Family Name  : ${data.familyName}`,
         `Address      : ${data.address}`,
         `Phone        : ${data.phone}`,
         `Amount Paid  : INR ${data.amount}`,
+        "",
         "Family Members:"
       ];
-      data.members.forEach((m, i) =>
-        lines.push(`  ${i+1}. ${m.name} | Age: ${m.age} | ${m.relation} | ${m.status}`)
-      );
+      data.members.forEach((m, i) => {
+        lines.push(`  ${i + 1}. ${m.name} | Age: ${m.age} | ${m.relation} | ${m.status}`);
+      });
       return lines.join("\n");
     }
 
-    /* ── Auto send to admin WhatsApp ────────────────── */
     function sendToAdmin() {
-      if (!snap || sent) return;
-      sent    = true;
+      if (!snap || sent || redirectInProgress) return;
+      redirectInProgress = true;
+      sent = true;
       pending = false;
+      leftForPayment = false;
+      hiddenAt = 0;
       saveState();
-      hideLoader();
+
+      showLoader("Sending details to admin WhatsApp&hellip;", "Opening WhatsApp with your family registration details.");
       const msg = buildMessage(snap);
       const url = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(msg)}`;
-      statusEl.textContent = "Payment received. Sending family details to admin WhatsApp…";
-      window.location.href = url;
+      setTimeout(() => {
+        window.location.href = url;
+      }, 700);
     }
 
-    function checkReturnFromPayment() {
+    function renderQrPayment(data) {
+      const params = new URLSearchParams({
+        pa: UPI_ID,
+        pn: UPI_NAME,
+        am: data.amount,
+        cu: "INR",
+        tn: "Parichay Samelan Registration"
+      });
+      const upiLink = `upi://pay?${params}`;
+      qrAmount.textContent = data.amount;
+      paymentQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(upiLink)}&margin=10`;
+      qrPaySection.classList.remove("hidden");
+      qrPaySection.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function showQrPayment(data) {
+      snap = data;
+      pending = true;
+      sent = false;
+      leftForPayment = false;
+      hiddenAt = 0;
+      redirectInProgress = false;
+      saveState();
+
+      renderQrPayment(data);
+      hideLoader();
+      statusEl.textContent = "Waiting for payment... complete payment in UPI app and return to this page.";
+    }
+
+    function markLeftForPayment() {
       loadState();
-      if (pending && !sent && snap) {
-        showLoader("Confirming payment… opening admin WhatsApp.");
+      if (pending && !sent) {
+        leftForPayment = true;
+        hiddenAt = Date.now();
+        saveState();
+        showLoader("Waiting for payment&hellip;", "Complete the payment in your UPI app. Do not close this page.");
+      }
+    }
+
+    function processReturnFromPayment() {
+      loadState();
+      if (pending && !sent && leftForPayment && !redirectInProgress) {
+        leftForPayment = false;
+        hiddenAt = 0;
+        saveState();
+        showLoader("Payment detected! Sending details to admin&hellip;", "Please wait a moment.");
         setTimeout(sendToAdmin, 1200);
       }
     }
 
-    /* ── Payment launch ─────────────────────────────── */
-    function launchPayment(data) {
-      const tid    = Date.now().toString();
-      const params = new URLSearchParams({
-        pa: UPI_ID, pn: UPI_NAME,
-        am: data.amount, cu: "INR",
-        tn: "Parichay Samelan Registration",
-        tid, tr: tid
-      });
-      const upiLink      = `upi://pay?${params}`;
-      const gpayLink     = `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-      const phonepeLink  = `intent://pay?${params}#Intent;scheme=upi;package=com.phonepe.app;end`;
-
-      /* populate fallback buttons */
-      gpayBtn.href    = gpayLink;
-      phonepeBtn.href = phonepeLink;
-      upiBtn.href     = upiLink;
-      paymentQr.src   = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiLink)}`;
-      paymentQr.classList.remove("hidden");
-      paymentFallback.classList.remove("hidden");
-
-      /* save state before leaving */
-      snap    = data;
-      pending = true;
-      sent    = false;
-      saveState();
-
-      const isAndroid = /Android/i.test(navigator.userAgent);
-      const isMobile  = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-      showLoader("Redirecting to payment app…");
-
-      if (isAndroid) {
-        window.location.href = gpayLink;
-        setTimeout(() => { window.location.href = upiLink; }, 1000);
-      } else if (isMobile) {
-        window.location.href = upiLink;
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        markLeftForPayment();
       } else {
-        hideLoader();
-        statusEl.textContent = "On desktop: use the payment buttons below or scan the QR from your phone. After payment, return here.";
+        processReturnFromPayment();
       }
-    }
+    });
 
-    /* ── Form submit ────────────────────────────────── */
+    window.addEventListener("pagehide", markLeftForPayment);
+    window.addEventListener("pageshow", processReturnFromPayment);
+    window.addEventListener("focus", processReturnFromPayment);
+
     form.addEventListener("submit", function(e) {
       e.preventDefault();
       statusEl.textContent = "";
 
-      /* validate visible form fields manually (avoid hidden-field blocking) */
       const fields = ["familyOwner", "familyName", "address", "phone"];
       let valid = true;
       fields.forEach(id => {
@@ -337,36 +366,35 @@
         alert("Please add at least one family member.");
         return;
       }
-      const bad = members.some(m => !m.name || !m.age || !m.relation || !m.status);
-      if (bad) {
+      if (members.some(m => !m.name || !m.age || !m.relation || !m.status)) {
         alert("Please fill all family member details.");
         return;
       }
 
       const data = {
         familyOwner: document.getElementById("familyOwner").value.trim(),
-        familyName:  document.getElementById("familyName").value.trim(),
-        address:     document.getElementById("address").value.trim(),
-        phone:       phone,
-        amount:      document.getElementById("amount").value.trim(),
+        familyName: document.getElementById("familyName").value.trim(),
+        address: document.getElementById("address").value.trim(),
+        phone,
+        amount: document.getElementById("amount").value.trim(),
         members
       };
 
-      launchPayment(data);
+      showQrPayment(data);
     });
 
     addMemberBtn.addEventListener("click", addMember);
 
-    /* ── Page-focus / visibility triggers ───────────── */
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) checkReturnFromPayment();
-    });
-    window.addEventListener("focus",    checkReturnFromPayment);
-    window.addEventListener("pageshow", checkReturnFromPayment);
-
-    /* ── Init ───────────────────────────────────────── */
     addMember();
-    checkReturnFromPayment();
+    loadState();
+    if (pending && !sent && snap) {
+      renderQrPayment(snap);
+      if (leftForPayment) {
+        processReturnFromPayment();
+      } else {
+        statusEl.textContent = "Scan the QR to complete payment.";
+      }
+    }
   </script>
 </body>
 </html>
