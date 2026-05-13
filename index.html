@@ -338,23 +338,31 @@
       const gpayLink = `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
       const phonepeLink = `intent://pay?${params}#Intent;scheme=upi;package=com.phonepe.app;end`;
 
-      upiBtn.href = upiLink;
-      gpayBtn.href = isAndroid ? gpayLink : upiLink;
-      phonepeBtn.href = isAndroid ? phonepeLink : upiLink;
+      currentUpiLink = upiLink;
+      currentGpayLink = isAndroid ? gpayLink : upiLink;
+      currentPhonepeLink = isAndroid ? phonepeLink : upiLink;
+
+      upiBtn.href = currentUpiLink;
+      gpayBtn.href = currentGpayLink;
+      phonepeBtn.href = currentPhonepeLink;
       paymentQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiLink)}`;
 
       paymentSection.classList.remove("hidden");
 
       if (isAndroid) {
+        leftForPayment = true;
+        saveState();
         showLoader("Opening Google Pay&hellip;", "If not opened, use buttons or scan QR.");
-        setTimeout(() => { window.location.href = gpayLink; }, 250);
+        setTimeout(() => { window.location.href = currentGpayLink; }, 250);
         setTimeout(() => hideLoader(), 2200);
       } else if (isIOS) {
+        leftForPayment = true;
+        saveState();
         showLoader("Opening UPI app&hellip;", "If not opened, use Any UPI App button or scan QR.");
-        setTimeout(() => { window.location.href = upiLink; }, 250);
+        setTimeout(() => { window.location.href = currentUpiLink; }, 250);
         setTimeout(() => hideLoader(), 2200);
       } else {
-        statusEl.textContent = "Pay using GPay/button/QR, then click 'I Have Completed Payment'.";
+        statusEl.textContent = "Use a UPI app from your phone to complete payment, then return to this page.";
       }
     }
 
@@ -462,7 +470,6 @@
       leftForPayment = false;
       saveState();
       statusEl.textContent = "Returning to payment options. Scan QR or choose app again.";
-      paymentRefEl = paymentRefEl || {};
     });
 
     gpayBtn.addEventListener("click", (e) => handlePaymentButtonClick(e, currentGpayLink, "Google Pay"));
@@ -476,7 +483,7 @@
     if (pending && !sent && snap) {
       setupPaymentLinks(snap);
       if (leftForPayment) {
-        statusEl.textContent = "If payment is complete, click 'I Have Completed Payment' to continue.";
+        statusEl.textContent = "Payment app opened. Complete payment there and return here.";
       }
     }
   </script>
