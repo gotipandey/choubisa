@@ -88,6 +88,26 @@
     }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
 
+    .pay-options {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .pay-link {
+      text-decoration: none;
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      min-width: 120px;
+      text-align: center;
+    }
+    .pay-link:hover { background: var(--primary-dark); }
+
     @media (max-width: 680px) {
       .grid { grid-template-columns: 1fr; }
       form { padding: 14px; }
@@ -135,20 +155,21 @@
       <button type="button" class="btn-accent" id="addMemberBtn" style="margin-top:8px;">+ Add Family Member</button>
 
       <div class="btn-row">
-        <button type="submit" class="btn-primary" style="flex:1;">Register &amp; Show Payment QR</button>
+        <button type="submit" class="btn-primary" style="flex:1;">Register &amp; Pay Securely</button>
       </div>
 
-      <div id="qrPaySection" class="hidden">
-        <h3>&#128179; Scan &amp; Pay</h3>
-        <p>Scan the QR code using any UPI app (GPay, PhonePe, Paytm&hellip;) and pay <strong>&#8377;<span id="qrAmount"></span></strong>.<br>
-           <em>After payment is completed and you return here, details are auto-sent to admin.</em></p>
-        <img id="paymentQr" alt="UPI Payment QR Code">
-        <div class="qr-upi-detail">
-          UPI ID: <strong>gotipandey@okhdfcbank</strong> &nbsp;|&nbsp; Name: <strong>Choubisa Samaj</strong>
-        </div>
-        <div class="waiting-badge">
+      <div id="paymentSection" class="hidden" style="margin-top:14px;">
+        <div class="waiting-badge" style="margin-bottom:10px;">
           <div class="waiting-dot"></div>
-          Waiting for payment confirmation&hellip;
+          Choose payment app or scan QR
+        </div>
+        <div class="pay-options">
+          <a id="gpayBtn" class="pay-link" href="#">Open Google Pay</a>
+          <a id="phonepeBtn" class="pay-link" href="#">Open PhonePe</a>
+          <a id="upiBtn" class="pay-link" href="#">Any UPI App</a>
+        </div>
+        <div style="margin-top:10px; text-align:center;">
+          <img id="paymentQr" alt="UPI QR" style="width:220px; max-width:100%; border:2px solid var(--primary); border-radius:10px; background:#fff;">
         </div>
       </div>
 
@@ -158,44 +179,32 @@
 
   <script>
     const ADMIN_WHATSAPP = "919407420156";
-    const UPI_ID         = "gotipandey@okhdfcbank";
-    const UPI_NAME       = "Choubisa Samaj";
+    const UPI_ID = "gotipandey@okhdfcbank";
+    const UPI_NAME = "Choubisa Samaj";
 
-    const form          = document.getElementById("registrationForm");
-    const membersEl     = document.getElementById("members");
-    const addMemberBtn  = document.getElementById("addMemberBtn");
-    const qrPaySection  = document.getElementById("qrPaySection");
-    const paymentQr     = document.getElementById("paymentQr");
-    const qrAmount      = document.getElementById("qrAmount");
-    const statusEl      = document.getElementById("status");
+    const form = document.getElementById("registrationForm");
+    const membersEl = document.getElementById("members");
+    const addMemberBtn = document.getElementById("addMemberBtn");
+    const paymentSection = document.getElementById("paymentSection");
+    const gpayBtn = document.getElementById("gpayBtn");
+    const phonepeBtn = document.getElementById("phonepeBtn");
+    const upiBtn = document.getElementById("upiBtn");
+    const paymentQr = document.getElementById("paymentQr");
+    const statusEl = document.getElementById("status");
     const loaderOverlay = document.getElementById("loaderOverlay");
-    const loaderText    = document.getElementById("loaderText");
-    const loaderSub     = document.getElementById("loaderSub");
+    const loaderText = document.getElementById("loaderText");
+    const loaderSub = document.getElementById("loaderSub");
+    const ua = navigator.userAgent || "";
+    const isAndroid = /Android/i.test(ua);
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    const isMobile = isAndroid || isIOS;
 
-    const SK = { snap: "csp_snap", pending: "csp_pending", sent: "csp_sent", left: "csp_left", hiddenAt: "csp_hidden_at" };
-    let snap = null, pending = false, sent = false, leftForPayment = false, hiddenAt = 0;
-    let redirectInProgress = false;
-
-    function saveState() {
-      sessionStorage.setItem(SK.snap, snap ? JSON.stringify(snap) : "");
-      sessionStorage.setItem(SK.pending, pending ? "1" : "0");
-      sessionStorage.setItem(SK.sent, sent ? "1" : "0");
-      sessionStorage.setItem(SK.left, leftForPayment ? "1" : "0");
-      sessionStorage.setItem(SK.hiddenAt, hiddenAt ? String(hiddenAt) : "0");
-    }
-
-    function loadState() {
-      const s = sessionStorage.getItem(SK.snap);
-      snap = s ? JSON.parse(s) : null;
-      pending = sessionStorage.getItem(SK.pending) === "1";
-      sent = sessionStorage.getItem(SK.sent) === "1";
-      leftForPayment = sessionStorage.getItem(SK.left) === "1";
-      hiddenAt = Number(sessionStorage.getItem(SK.hiddenAt) || "0");
-    }
+    const SK = { snap: "csp_snap", pending: "csp_pending", sent: "csp_sent", left: "csp_left" };
+    let snap = null, pending = false, sent = false, leftForPayment = false;
 
     function showLoader(msg, sub) {
-      loaderText.innerHTML = msg || "Confirming your payment&hellip;";
-      loaderSub.textContent = sub || "Please wait while we process and send your details to admin.";
+      loaderText.innerHTML = msg || "Processing payment&hellip;";
+      loaderSub.textContent = sub || "Please wait.";
       loaderOverlay.classList.remove("hidden");
     }
 
@@ -243,15 +252,31 @@
       }));
     }
 
+    function saveState() {
+      sessionStorage.setItem(SK.snap, snap ? JSON.stringify(snap) : "");
+      sessionStorage.setItem(SK.pending, pending ? "1" : "0");
+      sessionStorage.setItem(SK.sent, sent ? "1" : "0");
+      sessionStorage.setItem(SK.left, leftForPayment ? "1" : "0");
+    }
+
+    function loadState() {
+      const s = sessionStorage.getItem(SK.snap);
+      snap = s ? JSON.parse(s) : null;
+      pending = sessionStorage.getItem(SK.pending) === "1";
+      sent = sessionStorage.getItem(SK.sent) === "1";
+      leftForPayment = sessionStorage.getItem(SK.left) === "1";
+    }
+
     function buildMessage(data) {
       const lines = [
         "New Family Registration - Choubisa Samaj Parichay Samelan",
         "------------------------------------------------------------",
-        `Family Owner : ${data.familyOwner}`,
-        `Family Name  : ${data.familyName}`,
-        `Address      : ${data.address}`,
-        `Phone        : ${data.phone}`,
-        `Amount Paid  : INR ${data.amount}`,
+        `Payment Mode    : UPI`,
+        `Family Owner    : ${data.familyOwner}`,
+        `Family Name     : ${data.familyName}`,
+        `Address         : ${data.address}`,
+        `Phone           : ${data.phone}`,
+        `Amount Paid     : INR ${data.amount}`,
         "",
         "Family Members:"
       ];
@@ -262,23 +287,20 @@
     }
 
     function sendToAdmin() {
-      if (!snap || sent || redirectInProgress) return;
-      redirectInProgress = true;
+      if (!snap || sent) return;
       sent = true;
       pending = false;
       leftForPayment = false;
-      hiddenAt = 0;
       saveState();
-
-      showLoader("Sending details to admin WhatsApp&hellip;", "Opening WhatsApp with your family registration details.");
+      showLoader("Payment detected&hellip;", "Redirecting to WhatsApp to send details to admin.");
       const msg = buildMessage(snap);
       const url = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(msg)}`;
       setTimeout(() => {
         window.location.href = url;
-      }, 700);
+      }, 600);
     }
 
-    function renderQrPayment(data) {
+    function setupPaymentLinks(data) {
       const params = new URLSearchParams({
         pa: UPI_ID,
         pn: UPI_NAME,
@@ -286,61 +308,48 @@
         cu: "INR",
         tn: "Parichay Samelan Registration"
       });
+
       const upiLink = `upi://pay?${params}`;
-      qrAmount.textContent = data.amount;
-      paymentQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(upiLink)}&margin=10`;
-      qrPaySection.classList.remove("hidden");
-      qrPaySection.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
+      const gpayLink = `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+      const phonepeLink = `intent://pay?${params}#Intent;scheme=upi;package=com.phonepe.app;end`;
 
-    function showQrPayment(data) {
-      snap = data;
-      pending = true;
-      sent = false;
-      leftForPayment = false;
-      hiddenAt = 0;
-      redirectInProgress = false;
-      saveState();
+      upiBtn.href = upiLink;
+      gpayBtn.href = isAndroid ? gpayLink : upiLink;
+      phonepeBtn.href = isAndroid ? phonepeLink : upiLink;
+      paymentQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiLink)}`;
 
-      renderQrPayment(data);
-      hideLoader();
-      statusEl.textContent = "Waiting for payment... complete payment in UPI app and return to this page.";
-    }
+      paymentSection.classList.remove("hidden");
 
-    function markLeftForPayment() {
-      loadState();
-      if (pending && !sent) {
-        leftForPayment = true;
-        hiddenAt = Date.now();
-        saveState();
-        showLoader("Waiting for payment&hellip;", "Complete the payment in your UPI app. Do not close this page.");
-      }
-    }
-
-    function processReturnFromPayment() {
-      loadState();
-      if (pending && !sent && leftForPayment && !redirectInProgress) {
-        leftForPayment = false;
-        hiddenAt = 0;
-        saveState();
-        showLoader("Payment detected! Sending details to admin&hellip;", "Please wait a moment.");
-        setTimeout(sendToAdmin, 1200);
-      }
-    }
-
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) {
-        markLeftForPayment();
+      if (isAndroid) {
+        showLoader("Opening Google Pay&hellip;", "If not opened, use buttons or scan QR.");
+        setTimeout(() => { window.location.href = gpayLink; }, 250);
+        setTimeout(() => hideLoader(), 2200);
+      } else if (isIOS) {
+        showLoader("Opening UPI app&hellip;", "If not opened, use Any UPI App button or scan QR.");
+        setTimeout(() => { window.location.href = upiLink; }, 250);
+        setTimeout(() => hideLoader(), 2200);
       } else {
-        processReturnFromPayment();
+        statusEl.textContent = "Use payment buttons or scan QR to pay.";
       }
-    });
+    }
 
-    window.addEventListener("pagehide", markLeftForPayment);
-    window.addEventListener("pageshow", processReturnFromPayment);
-    window.addEventListener("focus", processReturnFromPayment);
+    function handlePaymentButtonClick(e, link, appName) {
+      e.preventDefault();
+      if (!link) {
+        statusEl.textContent = "Please click Register first to generate payment links.";
+        return;
+      }
+      if (!isMobile) {
+        statusEl.textContent = `${appName} app cannot open directly on desktop web. Please scan QR to pay.`;
+        return;
+      }
+      window.location.href = link;
+      setTimeout(() => {
+        statusEl.textContent = `If ${appName} did not open, try another button or scan QR.`;
+      }, 1500);
+    }
 
-    form.addEventListener("submit", function(e) {
+    form.addEventListener("submit", function (e) {
       e.preventDefault();
       statusEl.textContent = "";
 
@@ -380,20 +389,49 @@
         members
       };
 
-      showQrPayment(data);
+      snap = data;
+      pending = true;
+      sent = false;
+      leftForPayment = false;
+      saveState();
+
+      statusEl.textContent = "Payment started. Complete payment and return to this page.";
+      setupPaymentLinks(data);
     });
 
-    addMemberBtn.addEventListener("click", addMember);
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        if (pending && !sent) {
+          leftForPayment = true;
+          saveState();
+          showLoader("Waiting for payment&hellip;", "Complete payment in your UPI app.");
+        }
+      } else {
+        loadState();
+        if (pending && !sent && leftForPayment) {
+          sendToAdmin();
+        } else {
+          hideLoader();
+        }
+      }
+    });
 
+    window.addEventListener("focus", () => {
+      loadState();
+      if (pending && !sent && leftForPayment) sendToAdmin();
+    });
+
+    gpayBtn.addEventListener("click", (e) => handlePaymentButtonClick(e, gpayBtn.href, "Google Pay"));
+    phonepeBtn.addEventListener("click", (e) => handlePaymentButtonClick(e, phonepeBtn.href, "PhonePe"));
+    upiBtn.addEventListener("click", (e) => handlePaymentButtonClick(e, upiBtn.href, "UPI app"));
+
+    addMemberBtn.addEventListener("click", addMember);
     addMember();
+
     loadState();
     if (pending && !sent && snap) {
-      renderQrPayment(snap);
-      if (leftForPayment) {
-        processReturnFromPayment();
-      } else {
-        statusEl.textContent = "Scan the QR to complete payment.";
-      }
+      setupPaymentLinks(snap);
+      if (leftForPayment) sendToAdmin();
     }
   </script>
 </body>
